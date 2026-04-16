@@ -28,7 +28,7 @@ jobs:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: "my-laravel-app.tar.gz"
+          source: "my-laravel-app.tar.gz,nginx.conf"
           target: "/home/ubuntu"
 
       - name: Deploy to server
@@ -58,6 +58,9 @@ jobs:
             docker exec puskesmas-app php artisan route:cache
             sudo chown -R www-data:www-data /home/ubuntu/app/storage /home/ubuntu/app/bootstrap/cache || true
             sudo chmod -R 775 /home/ubuntu/app/storage /home/ubuntu/app/bootstrap/cache || true
-            sudo systemctl restart nginx
+            sudo cp /home/ubuntu/nginx.conf /etc/nginx/sites-available/laravel
+            sudo ln -sf /etc/nginx/sites-available/laravel /etc/nginx/sites-enabled/laravel
+            sudo rm -f /etc/nginx/sites-enabled/default
+            sudo nginx -t && sudo systemctl restart nginx
             docker image prune -f
             rm -f my-laravel-app.tar.gz
